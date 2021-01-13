@@ -12,7 +12,6 @@ const ErrorMessage = styled.h1`
 export const ErrorFallback: React.FC<FallbackProps> = ({
   resetErrorBoundary,
 }) => {
-  console.log('fallback render')
   return (
     <Container>
       <ErrorMessage>Something went wrong.</ErrorMessage>
