@@ -91,10 +91,12 @@ export const Search: React.FC<SearchProps> = ({
     )(event)
   }
 
-  const handleCategoryChange = pipe(
-    pathOr<CategoryState>('none', ['target', 'value']),
-    setCategory,
-  )
+  const handleCategoryChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setError(null)
+    pipe(pathOr<CategoryState>('none', ['target', 'value']), setCategory)(event)
+  }
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault()

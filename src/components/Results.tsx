@@ -27,7 +27,7 @@ const Tags = styled.div`
   flex-wrap: wrap;
   justify-self: start;
   align-self: start;
-  margin: -0.25rem;
+  margin: -0.25rem; // offset for flex children gutters
 `
 
 const Tag = styled.div`
@@ -36,7 +36,7 @@ const Tag = styled.div`
   font-size: 0.75rem;
   color: ${themeProp('white')};
   border-radius: 2px;
-  margin: 0.25rem;
+  margin: 0.25rem; // gutter size, must match parent neg margin
 `
 
 const ImageContainer = styled.div`
@@ -115,11 +115,11 @@ export const Results: React.FC<ResultsProps> = ({
             <Tags>
               {tags.map((tag) => (
                 <Tag key={tag}>{tag}</Tag>
-              ))}{' '}
+              ))}
             </Tags>
             <StatsSection>
               <Stat>
-                <div>{imageResult.likes}</div>{' '}
+                <div>{imageResult.likes}</div>
                 <ThumbsUp width={16} height={16} fill="#000000" />
               </Stat>
               <Stat>

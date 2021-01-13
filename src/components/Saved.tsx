@@ -30,7 +30,7 @@ export const Saved: React.FC<SavedProps> = ({ className, savedImages }) => {
       <Container>
         <Header>Saved</Header>
         {savedImages.map((imageResult) => (
-          <Link href={imageResult.largeImageURL} target="_blank">
+          <Link href={imageResult.largeImageURL} target="_blank" rel='external noreferrer'>
             #{imageResult.id}
             <ExternalLinkIcon width={16} height={16} stroke="currentColor" />
           </Link>
