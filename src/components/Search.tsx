@@ -2,11 +2,13 @@ import React from 'react'
 import styled from 'styled-components'
 import { pipe, pathOr, split, filter } from 'ramda'
 import { isNotEmpty } from 'ramda-adjunct'
+import { Spinner } from './Spinner'
 import { categories, Keywords, Category } from '../types'
 import { capitalize } from '../utils'
 import { themeProp } from '../theme'
+import { FetchError } from '../api'
 
-const Container = styled.div`
+const Form = styled.form`
   display: flex;
   flex-direction: column;
 `
@@ -14,7 +16,6 @@ const Container = styled.div`
 const Label = styled.label`
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
-  color: ${themeProp('lightGray')};
 `
 
 const Input = styled.input`
@@ -53,48 +54,64 @@ const SearchButton = styled.button`
   }
 `
 
+const ErrorMessage = styled.div`
+  color: ${themeProp('lightRed')};
+  margin-top: 1rem;
+`
+
 type SearchProps = {
   className?: string
   handleSearch: (keywords: Keywords, category?: Category) => void
+  isFetching: boolean
+  fetchError: FetchError
+  setError: (input: FetchError) => void
 }
 
 type CategoryState = Category | 'none'
 
-export const Search: React.FC<SearchProps> = ({ className, handleSearch }) => {
+export const Search: React.FC<SearchProps> = ({
+  className,
+  handleSearch,
+  isFetching,
+  fetchError,
+  setError,
+}) => {
   const [keywords, setKeywords] = React.useState<Array<string>>([])
   const [category, setCategory] = React.useState<CategoryState>('none')
 
-  const handleKeywordChange: (
+  const handleKeywordChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-  ) => void = pipe(
-    pathOr('', ['target', 'value']),
-    split(' '),
-    filter(isNotEmpty),
-    setKeywords,
-  )
+  ): void => {
+    setError(null)
+    pipe(
+      pathOr('', ['target', 'value']),
+      split(' '),
+      filter(isNotEmpty),
+      setKeywords,
+    )(event)
+  }
 
   const handleCategoryChange = pipe(
     pathOr<CategoryState>('none', ['target', 'value']),
     setCategory,
   )
 
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    handleSearch(keywords, category === 'none' ? undefined : category)
+  }
+
   return (
-    <Container className={className}>
-      <Label htmlFor="keyword">Keyword</Label>
+    <Form className={className} onSubmit={handleSearchSubmit}>
+      <Label htmlFor="keyword">Keywords</Label>
       <Input
         id="keyword"
-        placeholder="Keyword..."
+        placeholder="Keywords..."
         maxLength={100}
         onChange={handleKeywordChange}
       />
-
       <Label htmlFor="category">Category</Label>
-      <Select
-        id="category"
-        onChange={handleCategoryChange}
-        defaultValue="none"
-        value={category}
-      >
+      <Select id="category" onChange={handleCategoryChange} value={category}>
         <option value="none">None</option>
         {categories.map((category) => (
           <option key={category} value={category}>
@@ -102,14 +119,14 @@ export const Search: React.FC<SearchProps> = ({ className, handleSearch }) => {
           </option>
         ))}
       </Select>
-      <SearchButton
-        onClick={() =>
-          handleSearch(keywords, category === 'none' ? undefined : category)
-        }
-        disabled={keywords.length === 0}
-      >
-        Search
+      <SearchButton type="submit" disabled={keywords.length === 0}>
+        {isFetching ? <Spinner /> : 'Search'}
       </SearchButton>
-    </Container>
+      {fetchError ? (
+        <ErrorMessage>
+          There was a problem fetching your results. Please try again.
+        </ErrorMessage>
+      ) : null}{' '}
+    </Form>
   )
 }

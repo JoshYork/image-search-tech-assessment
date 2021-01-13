@@ -1,12 +1,14 @@
 import React from 'react'
 import styled from 'styled-components'
-import { filter, where } from 'ramda'
 import { notEqual } from 'ramda-adjunct'
+import { filter, where } from 'ramda'
+import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorFallback } from './ErrorFallback'
 import { Search } from './Search'
 import { Results } from './Results'
 import { Saved } from './Saved'
 import { Keywords, Category, ImageResult, ImageResults } from '../types'
-import { fetchPixabyImages } from '../api'
+import { usePixabyApi } from '../api'
 
 const Container = styled.div`
   display: flex;
@@ -30,11 +32,20 @@ const StyledSaved = styled(Saved)`
 `
 
 export const App = () => {
-  const [imageResults, setImageResults] = React.useState<ImageResults>([])
+  const {
+    imageResults,
+    setImageResults,
+    fetchImages,
+    isFetching,
+    error,
+    setError,
+  } = usePixabyApi()
   const [savedImages, setSavedImages] = React.useState<ImageResults>([])
 
-  const handleSearch = (keywords: Keywords, category?: Category) =>
-    fetchPixabyImages(keywords, category).then(setImageResults)
+  const handleSearch = (keywords: Keywords, category?: Category) => {
+    setError(null)
+    fetchImages(keywords, category)
+  }
 
   const handleImageSave = (imageResult: ImageResult) =>
     setSavedImages([...savedImages, imageResult])
@@ -43,17 +54,30 @@ export const App = () => {
     setSavedImages(filter(where({ id: notEqual(imageResult.id) }), savedImages))
 
   return (
-    <Container>
-      <ScrollArea>
-        <StyledSearch handleSearch={handleSearch} />
-        <Results
-          imageResults={imageResults}
-          savedImages={savedImages}
-          handleImageSave={handleImageSave}
-          handleImageRemoval={handleImageRemoval}
-        />
-      </ScrollArea>
-      <StyledSaved savedImages={savedImages} />
-    </Container>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => {
+        setSavedImages([])
+        setImageResults([])
+      }}
+    >
+      <Container>
+        <ScrollArea>
+          <StyledSearch
+            isFetching={isFetching}
+            handleSearch={handleSearch}
+            fetchError={error}
+            setError={setError}
+          />
+          <Results
+            imageResults={imageResults}
+            savedImages={savedImages}
+            handleImageSave={handleImageSave}
+            handleImageRemoval={handleImageRemoval}
+          />
+        </ScrollArea>
+        <StyledSaved savedImages={savedImages} />
+      </Container>
+    </ErrorBoundary>
   )
 }
