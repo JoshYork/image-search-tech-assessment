@@ -89,7 +89,7 @@ export const Results: React.FC<ResultsProps> = ({
   if (!imageResults || isEmpty(imageResults)) {
     return (
       <div>
-        Enter at least one keyword above and click search to see results.
+        No results. Try entering a keyword(s) above and clicking "Search".
       </div>
     )
   }
